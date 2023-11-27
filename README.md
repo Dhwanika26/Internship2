@@ -1,4 +1,5 @@
 Attribute Type and Graph Selection App
+
 This Streamlit app allows users to upload three CSV datasets, select attribute types for each column, and then choose graph attributes and types for visualization. The app generates a dashboard with selected options and displays various graphs using Plotly Express.
 
 Instructions:

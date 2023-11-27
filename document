@@ -1,42 +1,91 @@
-Attribute Type and Graph Selection App
-This Streamlit app allows users to upload three CSV datasets, select attribute types for each column, and then choose graph attributes and types for visualization. The app generates a dashboard with selected options and displays various graphs using Plotly Express.
+import streamlit as st
+import pandas as pd
+import plotly.express as px
 
-Instructions:
-Upload Datasets:
+def main():
+    st.title("Attribute Type and Graph Selection")
 
-Click on the "Upload your datasets" section to upload three CSV files.
-Ensure that each dataset has relevant column headers.
-Select Attribute Types:
+    # Step 1: Accept 3 datasets
+    st.header("Step 1: Upload Datasets")
+    uploaded_files = st.file_uploader("Upload your datasets (CSV files)", type=["csv"], accept_multiple_files=True)
 
-For each dataset, choose attribute types from the provided options for every column.
-Attribute types include "fixed decimal number," "decimal number," "whole number," "percentage," "date," "date/time," "time," "text," "true/false," and "binary."
-Select Graph Attributes and Types:
+    # Check if datasets are uploaded
+    if uploaded_files is not None and len(uploaded_files) == 3:
+        datasets = [pd.read_csv(file) for file in uploaded_files]
 
-Choose two attributes from each dataset for graphing.
-Select the graph type from options such as "bar," "line," "pie," "scatter," "bubble," "histogram," "heatmap," "box," and "map."
-Submit:
+        # Display the datasets
+        st.subheader("Uploaded Datasets:")
+        for i, dataset in enumerate(datasets):
+            st.write(f"Dataset {i+1}:")
+            st.dataframe(dataset)
 
-Click the "Submit" button to clear the screen, display selected options, and generate a dashboard with visualizations.
-How to Run:
-Install the required packages:
+        # Step 2: Select Attribute Types directly
+        st.header("Step 2: Select Attribute Types")
 
-bash
-Copy code
-pip install streamlit pandas plotly
-Run the Streamlit app:
+        selected_types = []
+        for i, dataset in enumerate(datasets):
+            st.subheader(f"Dataset {i+1} Attribute Types:")
+            for column in dataset.columns:
+                unique_key = f"{i}_{column}_type"
+                selected_type = st.selectbox(f"Select Type for {column} in Dataset {i+1}:", [
+                    "fixed decimal number", "decimal number", "whole number",
+                    "percentage", "date", "date/time", "time", "text", "true/false", "binary"
+                ], key=unique_key)
+                selected_types.append((f"Dataset {i+1}: {column}", selected_type))
 
-bash
-Copy code
-streamlit run your_app_file.py
-Replace your_app_file.py with the name of your Python script containing the Streamlit app.
+        # Step 3: Select Graph Attributes and Types
+        st.header("Step 3: Select Graph Attributes and Types")
 
-Dependencies:
-Streamlit
-Pandas
-Plotly Express
-Sample Usage:
-Upload three sample datasets.
-Select attribute types for each column.
+        graph_types = ["bar", "line", "pie", "scatter", "bubble", "histogram", "heatmap", "box", "map"]
+
+        selected_graphs = []
+        for i, dataset in enumerate(datasets):
+            st.subheader(f"Dataset {i+1} Graph Selection:")
+            selected_attributes = st.multiselect(f"Select 2 Attributes for Dataset {i+1}:", dataset.columns, key=f"{i}_attributes")
+            selected_graph = st.selectbox(f"Select Graph Type for Dataset {i+1}:", graph_types, key=f"{i}_graph")
+            if len(selected_attributes) == 2:
+                selected_graphs.append((f"Dataset {i+1}", selected_attributes, selected_graph))
+
+        # Step 4: Display selected options and submit button
+        if st.button("Submit"):
+            # Clear the screen
+            st.empty()
+
+            # Display selected options
+            st.header("Selected Options:")
+            for attribute, selected_type in selected_types:
+                st.write(f"{attribute}: {selected_type}")
+            for dataset_name, attributes, selected_graph in selected_graphs:
+                st.write(f"{dataset_name} Graph: {attributes[0]} vs {attributes[1]}, Type: {selected_graph}")
+
+            # Display Dashboards
+            st.header("Dashboard:")
+            for i, (dataset, (attribute1, attribute2), selected_graph) in enumerate(zip(datasets, [attributes for _, attributes, _ in selected_graphs], [graph for _, _, graph in selected_graphs])):
+                st.subheader(f"Dataset {i+1} Dashboard:")
+                fig = generate_graph(dataset, attribute1, attribute2, selected_graph)
+                st.plotly_chart(fig, use_container_width=True)
+
+def generate_graph(dataset, attribute1, attribute2, graph_type):
+    # Customize this function based on your actual data and requirements
+    # This is a basic example using Plotly Express
+    fig = None
+
+    if graph_type == "bar":
+        fig = px.bar(dataset, x=dataset.index, y=[attribute1, attribute2], title=f"{attribute1} vs {attribute2} Bar Chart")
+    elif graph_type == "line":
+        fig = px.line(dataset, x=dataset.index, y=[attribute1, attribute2], title=f"{attribute1} vs {attribute2} Line Chart")
+    # Add more cases for other graph types
+    elif graph_type == "scatter":
+        fig = px.scatter(dataset, x=attribute1, y=attribute2, title=f"{attribute1} vs {attribute2} Scatter Plot")
+    else:
+        # Default to a scatter plot if graph_type is not recognized
+        fig = px.scatter(dataset, x=attribute1, y=attribute2, title=f"{attribute1} vs {attribute2} Scatter Plot (Default)")
+
+    return fig
+
+if __name__ == "__main__":
+    main()
+
 Choose graph attributes and types.
 Click "Submit" to view the dashboard with selected options and visualizations.
 Note:

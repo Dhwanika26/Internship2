@@ -85,8 +85,3 @@ def generate_graph(dataset, attribute1, attribute2, graph_type):
 
 if __name__ == "__main__":
     main()
-
-Choose graph attributes and types.
-Click "Submit" to view the dashboard with selected options and visualizations.
-Note:
-Customize the generate_graph function in your script based on your specific data and visualization requirements.
